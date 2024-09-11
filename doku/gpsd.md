@@ -1,3 +1,7 @@
+# Install
+
+sudo apt install gpsd gpsd-clients
+
 # /etc/defaults/gpsd
 ```
 # Devices gpsd should collect to at boot time.
