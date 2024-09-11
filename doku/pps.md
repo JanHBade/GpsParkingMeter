@@ -16,6 +16,6 @@ dtoverlay=pps-gpio,gpiopin=17
 pps-gpio
 ```
 
-##Test
+## Test
 
 sudo ppstest /dev/pps0
