@@ -8,7 +8,7 @@ sudo apt install pps-tools
 
 Schaltplan und pinout.xyz gucken welcher das ist (GPIO)
 ```
-dtoverlay=pps-gpio,gpiopin=17
+dtoverlay=pps-gpio,gpiopin=23
 ```
 
 ## /etc/modules
