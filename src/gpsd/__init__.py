@@ -92,41 +92,43 @@ class GpsResponse(object):
         :return: GpsResponse
         """
         result = cls()
-        if not packet['active']:
-            raise UserWarning('GPS not active')
-        last_tpv = packet['tpv'][-1]
-        last_sky = packet['sky'][-1]
+        #if not packet['active']:
+        #    raise UserWarning('GPS not active')
+        if packet['tpv'] and packet['sky']:
+            last_tpv = packet['tpv'][-1]
+            last_sky = packet['sky'][-1]
 
-        if 'satellites' in last_sky:
-            result.sats = len(last_sky['satellites'])
-            result.sats_valid = len(
-                [sat for sat in last_sky['satellites'] if sat['used'] == True])
-        else:
-            result.sats = 0;
-            result.sats_valid = 0;
+            if 'satellites' in last_sky:
+                result.sats = len(last_sky['satellites'])
+                result.sats_valid = len(
+                    [sat for sat in last_sky['satellites'] if sat['used'] == True])
+            else:
+                result.sats = 0;
+                result.sats_valid = 0;
 
-        result.mode = last_tpv['mode']
+        
+            result.mode = last_tpv['mode']
 
-        if last_tpv['mode'] >= 2:
-            result.lon = last_tpv['lon'] if 'lon' in last_tpv else 0.0
-            result.lat = last_tpv['lat'] if 'lat' in last_tpv else 0.0
-            result.track = last_tpv['track'] if 'track' in last_tpv else 0
-            result.hspeed = last_tpv['speed'] if 'speed' in last_tpv else 0
-            result.time = last_tpv['time'] if 'time' in last_tpv else ''
-            result.error = {
-                'c': 0,
-                's': last_tpv['eps'] if 'eps' in last_tpv else 0,
-                't': last_tpv['ept'] if 'ept' in last_tpv else 0,
-                'v': 0,
-                'x': last_tpv['epx'] if 'epx' in last_tpv else 0,
-                'y': last_tpv['epy'] if 'epy' in last_tpv else 0
-            }
+            if last_tpv['mode'] >= 2:
+                result.lon = last_tpv['lon'] if 'lon' in last_tpv else 0.0
+                result.lat = last_tpv['lat'] if 'lat' in last_tpv else 0.0
+                result.track = last_tpv['track'] if 'track' in last_tpv else 0
+                result.hspeed = last_tpv['speed'] if 'speed' in last_tpv else 0
+                result.time = last_tpv['time'] if 'time' in last_tpv else ''
+                result.error = {
+                    'c': 0,
+                    's': last_tpv['eps'] if 'eps' in last_tpv else 0,
+                    't': last_tpv['ept'] if 'ept' in last_tpv else 0,
+                    'v': 0,
+                    'x': last_tpv['epx'] if 'epx' in last_tpv else 0,
+                    'y': last_tpv['epy'] if 'epy' in last_tpv else 0
+                }
 
-        if last_tpv['mode'] >= 3:
-            result.alt = last_tpv['alt'] if 'alt' in last_tpv else 0.0
-            result.climb = last_tpv['climb'] if 'climb' in last_tpv else 0
-            result.error['c'] = last_tpv['epc'] if 'epc' in last_tpv else 0
-            result.error['v'] = last_tpv['epv'] if 'epv' in last_tpv else 0
+            if last_tpv['mode'] >= 3:
+                result.alt = last_tpv['alt'] if 'alt' in last_tpv else 0.0
+                result.climb = last_tpv['climb'] if 'climb' in last_tpv else 0
+                result.error['c'] = last_tpv['epc'] if 'epc' in last_tpv else 0
+                result.error['v'] = last_tpv['epv'] if 'epv' in last_tpv else 0
 
         return result
 
