@@ -1,11 +1,22 @@
 #!/usr/bin/python3
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
 
+import time,datetime,sys
 from gpiozero import LED
-import time,datetime
 from PIL import Image,ImageDraw,ImageFont
+
+import logging
+import logging.handlers as handlers
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    handlers=[
+        handlers.RotatingFileHandler('GpsParkingMeter.log', maxBytes=500_000, backupCount=3),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
+
 from waveshare_epd import epd2in13_V4
 import gpsd
 
@@ -45,6 +56,8 @@ if __name__ == "__main__":
             packet = gpsd.get_current()
 
             if packet.mode > 2:     #3d Fix needed for speed
+                green.on()
+                yellow.off()
                 logging.info("Get Local Time")
                 ltime = packet.get_time(local_time=True)
                 logging.info("Time: " + str(ltime))
@@ -54,7 +67,7 @@ if __name__ == "__main__":
 
                 if (ltime - oldtime).total_seconds() > 60:
                     oldtime = ltime
-                    text_to_display = ltime.strftime("%H:%M")        
+                    text_to_display = ltime.strftime("%H:%M")
 
                     logging.info("Find Font Size")
                     fontsize = MAX_FONT_SIZE
@@ -63,23 +76,28 @@ if __name__ == "__main__":
                         fontsize -= 1
                         font = font.font_variant(size=fontsize)
                         text_dim = font.getbbox(text_to_display)
-                    
+
                     logging.info("New Font Size: " + str(fontsize))
 
                     logging.info("init ePaper")
                     epd.init()
-                    image = Image.new('1', (epd.height, epd.width), 255)  # 255: clear the frame    
+                    image = Image.new('1', (epd.height, epd.width), 255)  # 255: clear the frame
                     draw = ImageDraw.Draw(image)
                     draw.rounded_rectangle([(0,0),(epd.height, epd.width)],outline = 0, width = 2, radius = 5)
                     draw.text((0, -10), text_to_display, font = font, fill = 0)
                     logging.info("display image")
                     epd.display(epd.getbuffer(image))
             else:
+                yellow.on()
+                green.off()
                 logging.warning("No GPS Fix: " + str(packet.mode))
 
             time.sleep(20)
     except KeyboardInterrupt:
+        red.on()
+        green.off()
+        yellow.off()
         print("Keyboard Abbruch")
-  
+
     logging.info("Goto Sleep...")
     epd.sleep()
