@@ -5,16 +5,25 @@ import time,datetime,sys
 from gpiozero import LED
 from PIL import Image,ImageDraw,ImageFont
 
+from luma.core.interface.serial import i2c
+from luma.core.render import canvas
+from luma.core.virtual import terminal
+from luma.oled.device import ssd1306
+
 import logging
 import logging.handlers as handlers
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s | %(levelname)s | %(message)s",
+    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
     handlers=[
         handlers.RotatingFileHandler('GpsParkingMeter.log', maxBytes=500_000, backupCount=3),
         logging.StreamHandler(sys.stdout)
     ]
 )
+# ignore PIL debug messages
+logging.getLogger('PIL').setLevel(logging.ERROR)
+logging.getLogger('gpsd').setLevel(logging.ERROR)
+logging.getLogger('waveshare_epd.epd2in13_V4').setLevel(logging.INFO)
 
 
 from waveshare_epd import epd2in13_V4
@@ -28,8 +37,13 @@ yellow = LED(22)
 #font = ImageFont.truetype("./RobotoCondensed.ttf", 110)
 MAX_FONT_SIZE = 160
 font = ImageFont.truetype("./digital-7.ttf", MAX_FONT_SIZE)
+fontOled = ImageFont.truetype("/usr/share/fonts/opentye/freefont/FreeMono.otf", 14)
 
 oldtime = datetime.datetime(2002, 9, 27, 14, 30, 0).astimezone()
+
+serial = i2c(port=1, address=0x3C)
+device = ssd1306(serial)
+term = terminal(device, fontOled)
 
 if __name__ == "__main__":
     logging.info("init LEDs")
@@ -68,6 +82,11 @@ if __name__ == "__main__":
                 if (ltime - oldtime).total_seconds() > 60:
                     oldtime = ltime
                     text_to_display = ltime.strftime("%H:%M")
+
+                    logging.info("Update OLED")
+                    pos = packet.position()
+                    oledtext = text_to_display + f" {pos[0]:.1f} {pos[1]:.1f}"
+                    term.println(oledtext)
 
                     logging.info("Find Font Size")
                     fontsize = MAX_FONT_SIZE
