@@ -14,3 +14,5 @@
 | 8 (14)   | TX     | GPS |
 | 10 (15)   | RX     | GPS |
 | 16 (23)   | PPS     | GPS |
+| 5 (3)   | SCL     | OLED |
+| 3 (2)   | SDA     | OLED |
