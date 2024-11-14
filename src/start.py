@@ -33,11 +33,16 @@ red = LED(4)
 green = LED(27)
 yellow = LED(22)
 
+#in km/h
+min_speed = 10
+
+OledShift = 0
+
 #font = ImageFont.truetype("/usr/share/fonts/opentye/freefont/FreeMono.otf", 96)
 #font = ImageFont.truetype("./RobotoCondensed.ttf", 110)
 MAX_FONT_SIZE = 160
 font = ImageFont.truetype("./digital-7.ttf", MAX_FONT_SIZE)
-fontOled = ImageFont.truetype("/usr/share/fonts/opentye/freefont/FreeMono.otf", 14)
+fontOled = ImageFont.truetype("/usr/share/fonts/opentye/freefont/FreeMono.otf", 16)
 
 oldtime = datetime.datetime(2002, 9, 27, 14, 30, 0).astimezone()
 
@@ -85,30 +90,39 @@ if __name__ == "__main__":
 
                     logging.info("Update OLED")
                     pos = packet.position()
-                    oledtext = text_to_display + f" {pos[0]:.1f} {pos[1]:.1f}"
+                    speed = packet.speed()
+                    oledtext = " " * OledShift + text_to_display + f" {speed:.1f}"
+                    OledShift = OledShift + 1                    
+                    if OledShift == 3:
+                        OledShift = 0
                     term.println(oledtext)
 
-                    logging.info("Find Font Size")
-                    fontsize = MAX_FONT_SIZE
-                    text_dim = font.getbbox(text_to_display)
-                    while text_dim[2] > (epd.height-5) or text_dim[3] > epd.width:
-                        fontsize -= 1
-                        font = font.font_variant(size=fontsize)
+                    # speed in m/s, min_speed in km/h
+                    if speed > (min_speed / 3.6):
+                        logging.info("Find Font Size")
+                        fontsize = MAX_FONT_SIZE
                         text_dim = font.getbbox(text_to_display)
+                        while text_dim[2] > (epd.height-5) or text_dim[3] > epd.width:
+                            fontsize -= 1
+                            font = font.font_variant(size=fontsize)
+                            text_dim = font.getbbox(text_to_display)
 
-                    logging.info("New Font Size: " + str(fontsize))
+                        logging.info("New Font Size: " + str(fontsize))
 
-                    logging.info("init ePaper")
-                    epd.init()
-                    image = Image.new('1', (epd.height, epd.width), 255)  # 255: clear the frame
-                    draw = ImageDraw.Draw(image)
-                    draw.rounded_rectangle([(0,0),(epd.height, epd.width)],outline = 0, width = 2, radius = 5)
-                    draw.text((0, -10), text_to_display, font = font, fill = 0)
-                    logging.info("display image")
-                    epd.display(epd.getbuffer(image))
+                        logging.info("init ePaper")
+                        epd.init()
+                        image = Image.new('1', (epd.height, epd.width), 255)  # 255: clear the frame
+                        draw = ImageDraw.Draw(image)
+                        draw.rounded_rectangle([(0,0),(epd.height, epd.width)],outline = 0, width = 2, radius = 5)
+                        draw.text((0, -10), text_to_display, font = font, fill = 0)
+                        logging.info("display image")
+                        epd.display(epd.getbuffer(image))
+                    else:
+                        logging.info("to slow no update")
             else:
                 yellow.on()
                 green.off()
+                term.println("No GPS Fix")
                 logging.warning("No GPS Fix: " + str(packet.mode))
 
             time.sleep(20)
