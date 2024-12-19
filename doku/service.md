@@ -1,6 +1,8 @@
 
 /etc/systemd/system/GpsPM.service
 
+(liegt auch im src Verszeichnis, dann link dahin erstellen)
+
 ```
 [Unit]
 Description=GPS Parking Meter
@@ -18,5 +20,7 @@ WantedBy=multi-user.target
 ```
 
 sudo systemctl daemon-reload
+
 systemctl enable GpsPM
+
 systemctl start GpsPM
