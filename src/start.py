@@ -91,11 +91,12 @@ if __name__ == "__main__":
                     logging.info("Update OLED")
                     pos = packet.position()
                     speed = packet.speed()
-                    oledtext = " " * OledShift + text_to_display + f" {speed:.1f}"
+                    oledtext = "\n" + " " * OledShift + text_to_display + f" {speed:.1f}"
                     OledShift = OledShift + 1                    
                     if OledShift == 3:
                         OledShift = 0
-                    term.println(oledtext)
+                        term.reverse_colors()
+                    term.puts(oledtext)
 
                     # speed in m/s, min_speed in km/h
                     if speed > (min_speed / 3.6):
