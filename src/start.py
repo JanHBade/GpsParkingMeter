@@ -36,19 +36,25 @@ yellow = LED(22)
 #in km/h
 min_speed = 10
 
-OledShift = 0
-
-#font = ImageFont.truetype("/usr/share/fonts/opentye/freefont/FreeMono.otf", 96)
-#font = ImageFont.truetype("./RobotoCondensed.ttf", 110)
 MAX_FONT_SIZE = 160
 font = ImageFont.truetype("./digital-7.ttf", MAX_FONT_SIZE)
-fontOled = ImageFont.truetype("/usr/share/fonts/opentye/freefont/FreeMono.otf", 16)
+fontOled = ImageFont.truetype("/usr/share/fonts/opentye/freefont/FreeMono.otf", 14)
 
 oldtime = datetime.datetime(2002, 9, 27, 14, 30, 0).astimezone()
 
 serial = i2c(port=1, address=0x3C)
 device = ssd1306(serial)
-term = terminal(device, fontOled)
+term = terminal(device, fontOled, animate=False)
+
+OledShift = 0
+def updateOled(text_to_display):
+    global OledShift    
+    oledtext = "\n" + " " * OledShift + text_to_display
+    OledShift = OledShift + 1                    
+    if OledShift == 3:
+        OledShift = 0
+        term.reverse_colors()
+    term.puts(oledtext)
 
 if __name__ == "__main__":
     logging.info("init LEDs")
@@ -63,43 +69,35 @@ if __name__ == "__main__":
     yellow.off()
 
     epd = epd2in13_V4.EPD()
-    #logging.info(font.getbbox("23:34"))
     logging.info("Epaper H: " + str(epd.height) + " W: " + str(epd.width))
 
     try:
         while True:
-            logging.info("Connect to the local gpsd")
+            logging.info("Connect to the local gpsd and get GPS Data")
             gpsd.connect()
-
-            logging.info("Get gps position")
             packet = gpsd.get_current()
 
             if packet.mode > 2:     #3d Fix needed for speed
                 green.on()
                 yellow.off()
-                logging.info("Get Local Time")
                 ltime = packet.get_time(local_time=True)
-                logging.info("Time: " + str(ltime))
+                text_to_display = ltime.strftime("%H:%M")
+                logging.info("Local Time: " + str(ltime))
 
                 if oldtime == ltime:
                     logging.warning("GPS time stands still")
+                
+                pos = packet.position()
+                speed = packet.speed()
 
-                if (ltime - oldtime).total_seconds() > 60:
-                    oldtime = ltime
-                    text_to_display = ltime.strftime("%H:%M")
+                logging.info("Update OLED")
+                updateOled(text_to_display + f" {speed:.1f}")
 
-                    logging.info("Update OLED")
-                    pos = packet.position()
-                    speed = packet.speed()
-                    oledtext = "\n" + " " * OledShift + text_to_display + f" {speed:.1f}"
-                    OledShift = OledShift + 1                    
-                    if OledShift == 3:
-                        OledShift = 0
-                        term.reverse_colors()
-                    term.puts(oledtext)
-
-                    # speed in m/s, min_speed in km/h
-                    if speed > (min_speed / 3.6):
+                # speed in m/s, min_speed in km/h
+                if speed > (min_speed / 3.6):   #wir bewegen uns
+                    if (ltime - oldtime).total_seconds() > 60:
+                        oldtime = ltime
+                        
                         logging.info("Find Font Size")
                         fontsize = MAX_FONT_SIZE
                         text_dim = font.getbbox(text_to_display)
@@ -117,16 +115,16 @@ if __name__ == "__main__":
                         draw.rounded_rectangle([(0,0),(epd.height, epd.width)],outline = 0, width = 2, radius = 5)
                         draw.text((0, -10), text_to_display, font = font, fill = 0)
                         logging.info("display image")
-                        epd.display(epd.getbuffer(image))
-                    else:
-                        logging.info("to slow no update")
+                        epd.display(epd.getbuffer(image))    
+                else:
+                    logging.info("to slow no update")                                    
             else:
                 yellow.on()
                 green.off()
-                term.println("No GPS Fix")
-                logging.warning("No GPS Fix: " + str(packet.mode))
+                updateOled("No GPS: " + str(packet.mode))
+                logging.warning("No GPS: " + str(packet.mode))
 
-            time.sleep(20)
+            time.sleep(2)
     except KeyboardInterrupt:
         red.on()
         green.off()
