@@ -84,6 +84,8 @@ if __name__ == "__main__":
                 text_to_display = ltime.strftime("%H:%M")
                 logging.info("Local Time: " + str(ltime))
 
+                logging.debug(packet.error)
+
                 if oldtime == ltime:
                     logging.warning("GPS time stands still")
                 
