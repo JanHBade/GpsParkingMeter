@@ -93,7 +93,7 @@ if __name__ == "__main__":
                 speed = packet.speed()
 
                 logging.info("Update OLED")
-                updateOled(text_to_display + f" {speed:.1f}")
+                updateOled(text_to_display + f" {speed:.1f} {packet.hspeed:.1f}")
 
                 # speed in m/s, min_speed in km/h
                 if speed > (min_speed / 3.6):   #wir bewegen uns
