@@ -93,10 +93,10 @@ if __name__ == "__main__":
                 speed = packet.speed()
 
                 logging.info("Update OLED")
-                updateOled(text_to_display + f" {(speed/ 3.6):.1f} {(packet.hspeed/ 3.6):.1f}")
+                updateOled(text_to_display + f" {(speed * 3.6):.1f} {(packet.hspeed * 3.6):.1f}")
 
                 # speed in m/s, min_speed in km/h
-                if speed > (min_speed / 3.6):   #wir bewegen uns
+                if (speed * 3.6) > min_speed:   #wir bewegen uns
                     if (ltime - oldtime).total_seconds() > 60:
                         oldtime = ltime
                         
