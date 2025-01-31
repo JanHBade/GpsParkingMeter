@@ -280,6 +280,7 @@ def get_current():
     gpsd_stream.write("?POLL;\n")
     gpsd_stream.flush()
     raw = gpsd_stream.readline()
+    logger.debug("Raw message: " + raw)
     response = json.loads(raw)
     if response['class'] != 'POLL':
         raise Exception(

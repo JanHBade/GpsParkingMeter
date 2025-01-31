@@ -16,13 +16,13 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
     handlers=[
-        handlers.RotatingFileHandler('GpsParkingMeter.log', maxBytes=500_000, backupCount=3),
+        handlers.RotatingFileHandler('GpsParkingMeter.log', maxBytes=5_000_000, backupCount=3),
         logging.StreamHandler(sys.stdout)
     ]
 )
 # ignore PIL debug messages
 logging.getLogger('PIL').setLevel(logging.ERROR)
-logging.getLogger('gpsd').setLevel(logging.ERROR)
+logging.getLogger('gpsd').setLevel(logging.DEBUG)
 logging.getLogger('waveshare_epd.epd2in13_V4').setLevel(logging.INFO)
 
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
                 speed = packet.speed()
 
                 logging.info("Update OLED")
-                updateOled(text_to_display + f" {speed:.1f} {packet.hspeed:.1f}")
+                updateOled(text_to_display + f" {(speed/ 3.6):.1f} {(packet.hspeed/ 3.6):.1f}")
 
                 # speed in m/s, min_speed in km/h
                 if speed > (min_speed / 3.6):   #wir bewegen uns
