@@ -11,8 +11,5 @@
 | 7 (4)   | Error     | rote LED |
 | 15 (22)   | Warn     | gelbe LED |
 | 13 (27)   | OK     | grüne LED |
-| 8 (14)   | TX     | GPS |
-| 10 (15)   | RX     | GPS |
-| 16 (23)   | PPS     | GPS |
-| 5 (3)   | SCL     | OLED |
-| 3 (2)   | SDA     | OLED |
+| 5 (3)   | SCL     | OLED / RTC |
+| 3 (2)   | SDA     | OLED / RTC |
