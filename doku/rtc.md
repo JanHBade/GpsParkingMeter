@@ -1,4 +1,12 @@
-#RTC
+# RTC
+
+sudo raspi-config -> Interfacing Options -> I2C -> Yes
+
+sudo apt install python3-smbus i2c-tools
+
+sudo i2cdetect -y 1
+
+UU -> in Nutzung
 
 sudo nano /boot/config.txt
 ```
@@ -26,3 +34,7 @@ dev=$1
 #/sbin/hwclock --rtc=$dev --systz
 #/sbin/hwclock --rtc=$dev --hctosys
 ```
+
+## Check
+
+sudo hwclock -v
