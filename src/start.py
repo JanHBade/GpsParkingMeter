@@ -30,6 +30,7 @@ def updateEInk(text_to_display):
     logging.info("Find Font Size")
     fontsize = MAX_FONT_SIZE
     global font
+    font = font.font_variant(size=fontsize)
     text_dim = font.getbbox(text_to_display)
     while text_dim[2] > (epd.height-5) or text_dim[3] > epd.width:
         fontsize -= 1
@@ -42,8 +43,11 @@ def updateEInk(text_to_display):
     epd.init()
     image = Image.new('1', (epd.height, epd.width), 255)  # 255: clear the frame
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle([(0,0),(epd.height, epd.width)],outline = 0, width = 2, radius = 5)
-    draw.text((0, -10), text_to_display, font = font, fill = 0)
+    draw.rounded_rectangle([(0,0),(epd.height, epd.width)],outline = 0, width = 2, radius = 5)    
+    left = (epd.height - text_dim[2]) / 2
+    logging.debug("left: " + str(left))
+    logging.debug("text: " + text_to_display)
+    draw.text((left, -10), text_to_display, font = font, fill = 0)
     logging.info("display image")
     epd.display(epd.getbuffer(image))
 
@@ -54,29 +58,31 @@ if __name__ == "__main__":
     logging.info("Epaper H: " + str(epd.height) + " W: " + str(epd.width))
 
     try:
-        ltime = datetime.datetime.now()
-        if ltime.minute < 30:
-            textEink = str(ltime.hour) + ":30"
-        else:
-            textEink = str( (ltime+datetime.timedelta(hours=1)).hour ) + ":00"
-
-        logging.info("Eink Time (Startup): " + textEink)
-        updateEInk(textEink)
-
         while True:
             ltime = datetime.datetime.now()
-
-            text_to_display = ltime.strftime("%H:%M:%S")
             logging.info("Local Time: " + str(ltime))
+
+            diff = ltime - oldtime
+            if diff > datetime.timedelta(minutes=40):
+                if ltime.minute < 30:
+                    textEink = str(ltime.hour) + ":30"
+                else:
+                    textEink = str( (ltime+datetime.timedelta(hours=1)).hour ) + ":00"
+                
+                logging.info("Eink Time (Startup oder Diff): " + textEink)
+                updateEInk(textEink)
+                oldtime = ltime
             
             if ltime.minute == 1:
                 textEink = str(ltime.hour) + ":30"
                 logging.info("Eink Time: " + textEink)
                 updateEInk(textEink)
+                oldtime = ltime
             elif ltime.minute == 31:
                 textEink = str( (ltime+datetime.timedelta(hours=1)).hour ) + ":00"
                 logging.info("Eink Time: " + textEink)
                 updateEInk(textEink)
+                oldtime = ltime
 
             time.sleep(58)
     except KeyboardInterrupt:
