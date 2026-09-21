@@ -4,7 +4,7 @@ sudo raspi-config -> Interfacing Options -> I2C -> Yes
 
 sudo apt install python3-smbus i2c-tools
 
-sudo nano /boot/config.txt
+sudo nano /boot/firmware/config.txt
 ```
 dtoverlay=i2c-rtc,ds3231
 ```
